@@ -1,0 +1,18 @@
+Name:           LifeGame
+Version:        0.1
+License:        BSD3
+License-file:   LICENSE
+Author:         Ingrones
+Maintainer:     Ingrones
+Cabal-Version:  >= 1.2
+Build-Type:     Simple
+
+Executable life_game
+    Main-is:            Main.hs
+    Hs-Source-Dirs:     src
+    Build-Depends:
+        base >= 4,
+        wx >= 0.11,
+        array, random
+    if os(windows)
+        LD-Options:     -mwindows
