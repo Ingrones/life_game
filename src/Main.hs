@@ -47,9 +47,10 @@ lifeGameFrame =
                    , on command := set t [ enabled :~ not ] ]
         ]
     
-    let (aw,ah) = areaSize
-    set f [ layout := column 4 [ row 4 $ map widget buttons
-                               , minsize (sz (aw*cellSize) (ah*cellSize)) $ widget p ] ]
+    let buttonsLayout = margin 4 $ row 4 $ map widget buttons
+        (aw,ah) = areaSize
+        panelLayout = minsize (sz (aw*cellSize) (ah*cellSize)) $ widget p
+    set f [ layout := column 0 [ buttonsLayout, panelLayout ] ]
     
   where paintArea :: Var [Area] -> DC a -> Rect -> IO ()
         paintArea vArea dc viewArea =
