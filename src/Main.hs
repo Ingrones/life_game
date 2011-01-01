@@ -88,11 +88,3 @@ initAreaWithRandom g = array guardedRange $ zipWith cell (range guardedRange) se
         cell ix val = (ix, if inRange areaBounds ix then val else Guard)
 
         seq = [if x then Life else Empty | x <- randoms g]
-
--- for debug - print a content in given area.
-showArea :: Area -> IO ()
-showArea area = mapM_ (\y -> putStrLn $ map (\x -> symbol $ area!(x,y)) [x0..xn]) [y0..yn]
-  where ((x0,y0),(xn,yn)) = bounds area
-        symbol Guard = '#'
-        symbol Empty = '.'
-        symbol Life  = '@'
