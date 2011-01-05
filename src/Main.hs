@@ -27,6 +27,8 @@ data Cell = Guard | Empty | Life
 
 type Area = Array (Int,Int) Cell
 
+type Generation = [(Int, Area)]
+
 -- main function --
 
 main :: IO ()
@@ -52,9 +54,9 @@ lifeGameFrame =
         panelLayout = minsize (sz (aw*cellSize) (ah*cellSize)) $ widget p
     set f [ layout := column 0 [ buttonsLayout, panelLayout ] ]
     
-  where paintArea :: Var [Area] -> DC a -> Rect -> IO ()
+  where paintArea :: Var Generation -> DC a -> Rect -> IO ()
         paintArea vArea dc viewArea =
-         do area <- varGet vArea >>= return . head
+         do area <- varGet vArea >>= return . snd . head
             set dc [ brushColor := yellow, brushKind := BrushSolid ]
             mapM_ (drawCell dc) [ix | ix <- range areaBounds, area!ix == Life]
         
@@ -65,15 +67,18 @@ lifeGameFrame =
         
         drawCell dc ix = drawRect dc (ix2Rect ix) []
         
-        nextArea :: Var [Area] -> IO () -> IO ()
+        nextArea :: Var Generation -> IO () -> IO ()
         nextArea vArea act = varUpdate vArea tail >> act
 
 
-randomGeneration :: IO [Area]
+randomGeneration :: IO Generation
 randomGeneration = newStdGen >>= return . generation . initAreaWithRandom
 
-generation :: Area -> [Area]
-generation area = area : generation nextGen
+generation :: Area -> Generation
+generation base = zip [1..] (genSeq base)
+
+genSeq :: Area -> [Area]
+genSeq area = area : genSeq nextGen
   where nextGen = area // [ (ix, nextState (area!ix) (liveNeighbors ix)) | ix <- range areaBounds]
         liveNeighbors (x,y) = length [(x+dx,y+dy) | (dx,dy) <- direction, area!(x+dx,y+dy) == Life]
         nextState Life 2 = Life
