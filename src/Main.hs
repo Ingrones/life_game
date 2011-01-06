@@ -27,7 +27,18 @@ data Cell = Guard | Empty | Life
 
 type Area = Array (Int,Int) Cell
 
-type Generation = [(Int, Area)]
+newtype Generation = Gen [(Int, Area)]
+
+generation :: Area -> Generation
+generation base = Gen $ zip [1..] (genSeq base)
+
+currentStep :: Generation -> Int
+currentArea :: Generation -> Area
+nextGen :: Generation -> Generation
+
+currentStep (Gen ((s,_):_)) = s
+currentArea (Gen ((_,a):_)) = a
+nextGen (Gen (_:xs)) = Gen xs
 
 -- main function --
 
@@ -56,7 +67,7 @@ lifeGameFrame =
     
   where paintArea :: Var Generation -> DC a -> Rect -> IO ()
         paintArea vArea dc viewArea =
-         do area <- varGet vArea >>= return . snd . head
+         do area <- varGet vArea >>= return . currentArea
             set dc [ brushColor := yellow, brushKind := BrushSolid ]
             mapM_ (drawCell dc) [ix | ix <- range areaBounds, area!ix == Life]
         
@@ -68,14 +79,11 @@ lifeGameFrame =
         drawCell dc ix = drawRect dc (ix2Rect ix) []
         
         nextArea :: Var Generation -> IO () -> IO ()
-        nextArea vArea act = varUpdate vArea tail >> act
+        nextArea vArea act = varUpdate vArea nextGen >> act
 
 
 randomGeneration :: IO Generation
 randomGeneration = newStdGen >>= return . generation . initAreaWithRandom
-
-generation :: Area -> Generation
-generation base = zip [1..] (genSeq base)
 
 genSeq :: Area -> [Area]
 genSeq area = area : genSeq nextGen
