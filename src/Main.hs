@@ -50,20 +50,28 @@ lifeGameFrame =
     
     f <- frameFixed [ text := "Conway's Life Game Simulator" ]
     p <- panel f [ on paint := paintArea vArea ]
-    t <- timer f [ interval := speed, on command := nextArea vArea (repaint p) ]
+    s <- staticText f [ text := "1" ]
+    t <- timer f [ interval := speed
+                 , on command := nextArea vArea (do repaint p
+                                                    v <- varGet vArea
+                                                    set s [ text := show $ currentStep v ])
+                 , enabled := False ]
     
     buttons <- sequence [
-          button f [ text := "재시작"
+          button f [ text := "시작/일시정지"
+                   , on command := set t [ enabled :~ not ] ]
+        , button f [ text := "재시작"
                    , on command := randomGeneration >>= varSet vArea
                                 >> set t [ enabled := True ] ]
-        , button f [ text := "시작/일시정지"
-                   , on command := set t [ enabled :~ not ] ]
         ]
+
+    let (aw,ah) = areaSize
+        stepTextLayout = floatLeft  . margin 8 . row 4 $ [ label "세대:", widget s ]
+        buttonsLayout  = floatRight . margin 4 . row 4 $ map widget buttons
+        topBarLayout   = row 8 [ stepTextLayout, buttonsLayout ]
+        panelLayout    = minsize (sz (aw*cellSize) (ah*cellSize)) $ widget p
     
-    let buttonsLayout = margin 4 $ row 4 $ map widget buttons
-        (aw,ah) = areaSize
-        panelLayout = minsize (sz (aw*cellSize) (ah*cellSize)) $ widget p
-    set f [ layout := column 0 [ buttonsLayout, panelLayout ] ]
+    set f [ layout := column 0 [ topBarLayout, panelLayout ] ]
     
   where paintArea :: Var Generation -> DC a -> Rect -> IO ()
         paintArea vArea dc viewArea =
